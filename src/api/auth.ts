@@ -7,3 +7,9 @@ export function register(payload: RegisterRequest): Promise<void> {
         body: JSON.stringify(payload),
     });
 }
+
+export function logout(): Promise<void> {
+    return apiFetch<void>("/api/auth/logout", {
+        method: "POST",
+    });
+}
