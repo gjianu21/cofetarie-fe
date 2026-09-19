@@ -1,7 +1,13 @@
 import EclairIllustration from "../components/EclairIllustration";
 import "../styles/auth.css";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function LoginPage() {
+    const handleLogin = () => {
+        window.location.href = `${BASE_URL}/oauth2/authorization/cofetarie-bff`;
+    };
+
     return (
         <div className="auth-page">
             <div className="auth-shell auth-shell--reverse">
@@ -14,36 +20,13 @@ export default function LoginPage() {
                     </div>
 
                     <h1 className="auth-title">Autentificare</h1>
+                    <p className="auth-subtitle" style={{ textAlign: "left", margin: "-16px 0 24px" }}>
+                        Vei fi redirecționat către pagina securizată de login.
+                    </p>
 
-                    <form className="auth-form">
-                        <div className="form-field">
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="Adresă de email"
-                                autoComplete="email"
-                            />
-                        </div>
-
-                        <div className="form-field">
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                placeholder="Parolă"
-                                autoComplete="current-password"
-                            />
-                        </div>
-
-                        <p className="auth-footer" style={{ marginTop: 8 }}>
-                            <a href="/forgot-password">Ai uitat parola?</a>
-                        </p>
-
-                        <button type="submit" className="auth-submit">
-                            Autentificare
-                        </button>
-                    </form>
+                    <button type="button" className="auth-submit" onClick={handleLogin}>
+                        Continuă spre autentificare
+                    </button>
 
                     <p className="auth-footer">
                         Nu ai cont? <a href="/register">Creează unul</a>
@@ -51,9 +34,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="auth-panel-col">
-                    <p className="auth-panel-title">
-                        Un răsfăț dulce te așteaptă la fiecare vizită!
-                    </p>
+                    <p className="auth-panel-title">Un răsfăț dulce te așteaptă la fiecare vizită!</p>
                     <EclairIllustration />
                 </div>
             </div>
