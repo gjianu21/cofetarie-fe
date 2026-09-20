@@ -1,7 +1,28 @@
+import { useState } from "react";
+import { forgotPassword } from "../api/auth";
 import CookieIllustration from "../components/CookieIllustration";
 import "../styles/auth.css";
 
 export default function ForgotPasswordPage() {
+    const [email, setEmail] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [sent, setSent] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        setError(null);
+        setSubmitting(true);
+        try {
+            await forgotPassword({ email });
+            setSent(true);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "A apărut o eroare. Încearcă din nou.");
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
     return (
         <div className="auth-page">
             <div className="auth-shell">
@@ -18,21 +39,32 @@ export default function ForgotPasswordPage() {
                         Introdu adresa de email și îți trimitem un link pentru resetarea parolei.
                     </p>
 
-                    <form className="auth-form">
-                        <div className="form-field">
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="Adresă de email"
-                                autoComplete="email"
-                            />
+                    {sent ? (
+                        <div className="auth-message success">
+                            Dacă adresa există în sistem, am trimis un email cu instrucțiuni de resetare.
                         </div>
+                    ) : (
+                        <form className="auth-form" onSubmit={handleSubmit}>
+                            {error && <div className="auth-message error">{error}</div>}
 
-                        <button type="submit" className="auth-submit">
-                            Trimite link de resetare
-                        </button>
-                    </form>
+                            <div className="form-field">
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="Adresă de email"
+                                    autoComplete="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <button type="submit" className="auth-submit" disabled={submitting}>
+                                {submitting ? "Se trimite..." : "Trimite link de resetare"}
+                            </button>
+                        </form>
+                    )}
 
                     <p className="auth-footer">
                         Ți-ai amintit parola? <a href="/login">Autentifică-te</a>

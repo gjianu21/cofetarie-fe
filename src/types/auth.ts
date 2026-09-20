@@ -6,3 +6,12 @@ export interface RegisterRequest {
 export interface ApiErrorResponse {
     message: string;
 }
+
+export interface ForgotPasswordRequest {
+    email: string;
+}
+
+export interface ResetPasswordRequest {
+    token: string;
+    newPassword: string;
+}
