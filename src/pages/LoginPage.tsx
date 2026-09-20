@@ -31,6 +31,9 @@ export default function LoginPage() {
                     <p className="auth-footer">
                         Nu ai cont? <a href="/register">Creează unul</a>
                     </p>
+                    <p className="auth-footer">
+                        <a href="/forgot-password">Ai uitat parola?</a>
+                    </p>
                 </div>
 
                 <div className="auth-panel-col">
