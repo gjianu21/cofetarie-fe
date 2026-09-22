@@ -1,120 +1,62 @@
-import CakeIllustration from "../components/CakeIllustration";
-import CookieIllustration from "../components/CookieIllustration";
-import EclairIllustration from "../components/EclairIllustration";
-import "../styles/home.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-interface Product {
-    id: string;
-    name: string;
-    price: string;
-    badge?: string;
-    description: string;
-    illustration: React.ReactNode;
-}
-
-const PRODUCTS: Product[] = [
-    {
-        id: "tort-fructe-padure",
-        name: "Tort cu fructe de pădure",
-        price: "89 RON",
-        badge: "Cel mai vândut",
-        description:
-            "Blat pufos, cremă mascarpone și un strat generos de fructe de pădure proaspete.",
-        illustration: <CakeIllustration />,
-    },
-    {
-        id: "eclair-clasic",
-        name: "Eclair clasic",
-        price: "14 RON",
-        description:
-            "Foietaj crocant, umplut cu cremă de vanilie și glazură fină de ciocolată.",
-        illustration: <EclairIllustration />,
-    },
-    {
-        id: "fursecuri-ciocolata",
-        name: "Fursecuri cu ciocolată",
-        price: "6 RON/buc",
-        badge: "Nou",
-        description:
-            "Fursecuri artizanale cu bucăți generoase de ciocolată belgiană.",
-        illustration: <CookieIllustration />,
-    },
-];
+// src/pages/HomePage.tsx
+// Pagina principala. Compune sectiunile. Filtrul sta in query string (/?categorie=torturi).
+import { useSearchParams } from "react-router-dom";
+import Hero from "../components/home/Hero";
+import CategoryCircles from "../components/home/CategoryCircles";
+import ProductGrid from "../components/home/ProductGrid";
+import PromoBanner from "../components/home/PromoBanner";
+import AboutTeaser from "../components/home/AboutTeaser";
+import { products, type Product } from "../data/products";
 
 export default function HomePage() {
-    const handleLogout = () => {
-        window.location.href = `${BASE_URL}/api/auth/logout`;
-    };
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeCategory = searchParams.get("categorie") ?? "toate";
 
-    return (
-        <div className="home-page">
-            <nav className="home-nav">
-                <div className="home-nav-brand">
-                    <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-                        <circle cx="18" cy="18" r="17" stroke="#718355" strokeWidth="2" />
-                        <path
-                            d="M11 20c0-4 3-7 7-7s7 3 7 7"
-                            stroke="#718355"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                        />
-                        <circle cx="18" cy="12" r="2" fill="#c0392b" />
-                    </svg>
-                    <span>Cofetărie</span>
-                </div>
+  const handleSelect = (slug: string) => {
+    if (slug === "toate") searchParams.delete("categorie");
+    else searchParams.set("categorie", slug);
+    setSearchParams(searchParams);
+    document.getElementById("produse")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-                <div className="home-nav-user">
-                    <span>Bine ai venit!</span>
-                    <button className="home-nav-logout" type="button" onClick={handleLogout}>
-                        Deconectare
-                    </button>
-                </div>
-            </nav>
+  const filtered =
+    activeCategory === "toate"
+      ? products
+      : products.filter((p) => p.categorySlug === activeCategory);
 
-            <header className="home-hero">
-                <div className="home-hero-text">
-                    <p className="home-hero-eyebrow">Cofetărie artizanală</p>
-                    <h1 className="home-hero-title">
-                        Dulciuri făcute cu grijă, în fiecare zi
-                    </h1>
-                    <p className="home-hero-subtitle">
-                        De la torturi personalizate până la fursecuri proaspete, aducem
-                        atelierul cofetăriei direct la tine acasă.
-                    </p>
-                </div>
-                <div className="home-hero-illustrations">
-                    <CakeIllustration />
-                    <EclairIllustration />
-                    <CookieIllustration />
-                </div>
-            </header>
+  // TODO: cand ai CartContext -> const { addItem } = useCart();
+  const handleAdd = (product: Product) => {
+    // addItem(product);
+    console.log("adaugat in cos:", product.slug);
+  };
 
-            <section className="home-section">
-                <h2 className="home-section-title">Produsele noastre</h2>
-                <p className="home-section-subtitle">
-                    O selecție din ce găsești în vitrina noastră chiar acum.
-                </p>
+  return (
+    <>
+      <Hero />
 
-                <div className="home-product-grid">
-                    {PRODUCTS.map((product) => (
-                        <div className="home-product-card" key={product.id}>
-                            {product.badge && (
-                                <span className="home-product-badge">{product.badge}</span>
-                            )}
-                            {product.illustration}
-                            <h3 className="home-product-name">{product.name}</h3>
-                            <p className="home-product-desc">{product.description}</p>
-                            <span className="home-product-price">{product.price}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <footer className="home-footer">
-                <p>&copy; {new Date().getFullYear()} Cofetărie. Toate drepturile rezervate.</p>
-            </footer>
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">Alege după poftă</p>
+            <h2>Categoriile noastre</h2>
+          </div>
+          <CategoryCircles active={activeCategory} onSelect={handleSelect} />
         </div>
-    );
+      </section>
+
+      <section className="section section--muted" id="produse">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">Din vitrină</p>
+            <h2>Produsele noastre</h2>
+            <p>Apasă pe o categorie de mai sus ca să filtrezi lista.</p>
+          </div>
+          <ProductGrid products={filtered} onAdd={handleAdd} />
+        </div>
+      </section>
+
+      <PromoBanner />
+      <AboutTeaser />
+    </>
+  );
 }

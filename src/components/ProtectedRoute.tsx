@@ -1,16 +1,32 @@
-import { Navigate } from "react-router-dom";
-import { useCurrentUser } from "../hooks/useCurrentUser";
+// src/components/ProtectedRoute.tsx
+// Paznic de rute: cere autentificare si, optional, un rol anume (ex. ADMIN).
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const { user, loading } = useCurrentUser();
+interface Props {
+    role?: "ADMIN";
+}
 
-    if (loading) {
-        return <div style={{ padding: 40, textAlign: "center" }}>Se încarcă...</div>;
+export default function ProtectedRoute({ role }: Props) {
+    const { user, isLoading } = useAuth();
+    const location = useLocation();
+
+    if (isLoading) {
+        return (
+            <p style={{ padding: "60px", textAlign: "center", color: "var(--muted)" }}>
+                Se verifică sesiunea...
+            </p>
+        );
     }
 
     if (!user) {
-        return <Navigate to="/login" replace />;
+        // pastram unde voia sa ajunga, ca dupa login sa-l trimitem inapoi acolo
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    return <>{children}</>;
+    if (role && user.role !== role) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
 }
