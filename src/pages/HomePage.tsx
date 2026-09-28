@@ -1,15 +1,17 @@
 // src/pages/HomePage.tsx
 // Pagina principala. Compune sectiunile. Filtrul sta in query string (/?categorie=torturi).
 import { useSearchParams } from "react-router-dom";
-import Hero from "../components/home/Hero";
+import AboutTeaser from "../components/home/AboutTeaser";
 import CategoryCircles from "../components/home/CategoryCircles";
+import Hero from "../components/home/Hero";
 import ProductGrid from "../components/home/ProductGrid";
 import PromoBanner from "../components/home/PromoBanner";
-import AboutTeaser from "../components/home/AboutTeaser";
+import { useCart } from "../context/cart-context";
 import { products, type Product } from "../data/products";
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { addItem } = useCart();
   const activeCategory = searchParams.get("categorie") ?? "toate";
 
   const handleSelect = (slug: string) => {
@@ -24,10 +26,14 @@ export default function HomePage() {
       ? products
       : products.filter((p) => p.categorySlug === activeCategory);
 
-  // TODO: cand ai CartContext -> const { addItem } = useCart();
+  // Apelat doar pentru produsele fără variante (cele cu variante duc la pagina produsului)
   const handleAdd = (product: Product) => {
-    // addItem(product);
-    console.log("adaugat in cos:", product.slug);
+    addItem({
+      productId: product.slug,
+      name: product.name,
+      unitPrice: product.price,
+      imageUrl: product.imageUrl,
+    });
   };
 
   return (

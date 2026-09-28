@@ -1,19 +1,25 @@
 // src/pages/ProductPage.tsx
-// PREZENTATIONAL. Cand adaugi CartContext, handleAdd trimite (product, variant, qty, cakeMessage) catre addItem().
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import QuantityStepper from "../components/shop/QuantityStepper";
+import { useCart } from "../context/cart-context";
 import { products } from "../data/products";
 import { productVariants } from "../data/variants";
-import QuantityStepper from "../components/shop/QuantityStepper";
+
+// Slug-ul categoriei pentru care se afișează mesajul pe tort.
+// Verifică în data/products.ts că e exact valoarea din categorySlug pentru torturi.
+const CAKE_CATEGORY = "torturi";
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { addItem } = useCart();
   const product = useMemo(() => products.find((p) => p.slug === slug), [slug]);
   const variants = slug ? productVariants[slug] : undefined;
 
   const [variantId, setVariantId] = useState(variants?.[1]?.id ?? variants?.[0]?.id);
   const [qty, setQty] = useState(1);
   const [cakeMessage, setCakeMessage] = useState("");
+  const [added, setAdded] = useState(false);
 
   if (!product) {
     return (
@@ -26,12 +32,25 @@ export default function ProductPage() {
     );
   }
 
+  const isCake = product.categorySlug === CAKE_CATEGORY;
   const selectedVariant = variants?.find((v) => v.id === variantId);
   const displayPrice = selectedVariant?.price ?? product.price;
 
   const handleAdd = () => {
-    // TODO: addItem({ productId: product.id, variantId, qty, cakeMessage })
-    console.log("adaugă în coș", { slug: product.slug, variantId, qty, cakeMessage });
+    const message = isCake ? cakeMessage.trim() : "";
+    addItem(
+      {
+        productId: product.slug,
+        name: product.name,
+        variantId: selectedVariant?.id,
+        variant: selectedVariant?.label,
+        cakeMessage: message || undefined,
+        unitPrice: displayPrice,
+        imageUrl: product.imageUrl,
+      },
+      qty,
+    );
+    setAdded(true);
   };
 
   return (
@@ -60,7 +79,10 @@ export default function ProductPage() {
                     key={v.id}
                     type="button"
                     className={`chip ${variantId === v.id ? "selected" : ""}`}
-                    onClick={() => setVariantId(v.id)}
+                    onClick={() => {
+                      setVariantId(v.id);
+                      setAdded(false);
+                    }}
                   >
                     {v.label}
                     <small>{v.helper} · {v.price} lei</small>
@@ -70,17 +92,21 @@ export default function ProductPage() {
             </div>
           )}
 
-          {/* mesaj personalizat — relevant doar pentru torturi, dar il lasam disponibil generic */}
-          <div className="variant-group">
-            <label className="variant-group__label" htmlFor="cakeMsg">Mesaj pe tort (opțional)</label>
-            <input
-              className="input"
-              id="cakeMsg"
-              placeholder="ex: La mulți ani, Ana!"
-              value={cakeMessage}
-              onChange={(e) => setCakeMessage(e.target.value)}
-            />
-          </div>
+          {isCake && (
+            <div className="variant-group">
+              <label className="variant-group__label" htmlFor="cakeMsg">Mesaj pe tort (opțional)</label>
+              <input
+                className="input"
+                id="cakeMsg"
+                placeholder="ex: La mulți ani, Ana!"
+                value={cakeMessage}
+                onChange={(e) => {
+                  setCakeMessage(e.target.value);
+                  setAdded(false);
+                }}
+              />
+            </div>
+          )}
 
           <div className="product__actions">
             <QuantityStepper value={qty} onChange={setQty} />
@@ -89,15 +115,24 @@ export default function ProductPage() {
             </button>
           </div>
 
+          {added && (
+            <div className="notice notice--ok" style={{ marginTop: "14px" }}>
+              Produsul a fost adăugat în coș.{" "}
+              <Link className="link" to="/cos">Vezi coșul</Link>
+            </div>
+          )}
+
           <div className="info-box">
             <h3>Ingrediente &amp; alergeni</h3>
             {/* TODO: cand ai campul in backend, inlocuieste textul static */}
             <p>Conține: gluten, ouă, lactate. Poate conține urme de nuci.</p>
           </div>
-          <div className="info-box">
-            <h3>Comandă din timp</h3>
-            <p>Produsele de tip tort se pregătesc la comandă — comandă cu cel puțin 24h înainte de data dorită.</p>
-          </div>
+          {isCake && (
+            <div className="info-box">
+              <h3>Comandă din timp</h3>
+              <p>Produsele de tip tort se pregătesc la comandă — comandă cu cel puțin 24h înainte de data dorită.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,35 +1,11 @@
 // src/pages/CartPage.tsx
-// PREZENTATIONAL cu date de exemplu locale (useState). Cand ai CartContext, inlocuiesti
-// state-ul de mai jos cu { items, updateQty, removeItem, subtotal } din context.
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import QuantityStepper from "../components/shop/QuantityStepper";
-
-interface CartLine {
-  id: string;
-  name: string;
-  variant?: string;
-  qty: number;
-  unitPrice: number;
-  imageUrl?: string;
-}
-
-const SAMPLE: CartLine[] = [
-  { id: "1", name: "Tort Red Velvet", variant: "Mărime: 1kg", qty: 1, unitPrice: 160 },
-  { id: "2", name: "Eclere cu vanilie", variant: "Bucată", qty: 4, unitPrice: 8 },
-  { id: "3", name: "Sărățele cu susan", variant: "Pungă 200g", qty: 2, unitPrice: 12 },
-];
+import { useCart } from "../context/cart-context";
 
 export default function CartPage() {
   const navigate = useNavigate();
-  // TODO: inlocuieste cu const { items, updateQty, removeItem } = useCart();
-  const [items, setItems] = useState<CartLine[]>(SAMPLE);
-
-  const updateQty = (id: string, qty: number) =>
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, qty } : it)));
-  const removeItem = (id: string) => setItems((prev) => prev.filter((it) => it.id !== id));
-
-  const subtotal = items.reduce((sum, it) => sum + it.unitPrice * it.qty, 0);
+  const { items, updateQty, removeItem, subtotal } = useCart();
 
   if (items.length === 0) {
     return (
@@ -58,6 +34,9 @@ export default function CartPage() {
               <div>
                 <div className="cart-item__name">{it.name}</div>
                 {it.variant && <div className="cart-item__variant">{it.variant}</div>}
+                {it.cakeMessage && (
+                  <div className="cart-item__variant">Mesaj: „{it.cakeMessage}”</div>
+                )}
               </div>
               <QuantityStepper value={it.qty} onChange={(v) => updateQty(it.id, v)} size="sm" />
               <div style={{ textAlign: "right" }}>
