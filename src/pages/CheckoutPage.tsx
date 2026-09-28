@@ -1,25 +1,32 @@
 // src/pages/CheckoutPage.tsx
-// PREZENTATIONAL. Taxa de livrare/total sunt calculate local pentru demo — in realitate vin din
-// raspunsul serverului (nu ai incredere in preturi calculate pe client).
+// Taxa de livrare/total sunt calculate local doar pentru afișare. La plasarea comenzii,
+// prețurile trebuie recalculate de server (nu ai încredere în prețuri calculate pe client).
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useCart } from "../context/cart-context";
 
-const DELIVERY_FEE = 40;
-const SUBTOTAL_DEMO = 216; // TODO: preia subtotalul real din CartContext
+const DELIVERY_FEE = 40; // TODO: pe zone, când există regulile de livrare
 
 type DeliveryMode = "livrare" | "ridicare";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { items, subtotal } = useCart();
   const [mode, setMode] = useState<DeliveryMode>("livrare");
 
+  // vizitator care intră direct pe /checkout cu coșul gol
+  if (items.length === 0) {
+    return <Navigate to="/cos" replace />;
+  }
+
   const deliveryFee = mode === "ridicare" ? 0 : DELIVERY_FEE;
-  const total = SUBTOTAL_DEMO + deliveryFee;
+  const total = subtotal + deliveryFee;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: POST /api/orders cu { items, mode, address?, date, slot, notes }
-    // apoi navigate(`/comanda-plasata/${orderId}`)
+    // TODO: POST /api/orders cu { items: [{ productId, variantId, qty, cakeMessage }], mode, address?, date, slot, notes }
+    // Trimite doar productId/variantId/qty, NU unitPrice. Serverul recalculează prețurile.
+    // După răspunsul serverului: navigate(`/comanda-plasata/${orderId}`) și abia apoi clear() din useCart().
     navigate("/comanda-plasata/DA-2026-0417");
   };
 
@@ -109,10 +116,15 @@ export default function CheckoutPage() {
 
         <aside className="summary-card">
           <h3>Comanda ta</h3>
-          {/* TODO: randeaza liniile reale din cos */}
-          <div className="summary-row"><span>Tort Red Velvet (1kg) × 1</span><span>160 lei</span></div>
-          <div className="summary-row"><span>Eclere cu vanilie × 4</span><span>32 lei</span></div>
-          <div className="summary-row"><span>Sărățele cu susan × 2</span><span>24 lei</span></div>
+          {items.map((it) => (
+            <div className="summary-row" key={it.id}>
+              <span>
+                {it.name}
+                {it.variant ? ` (${it.variant})` : ""} × {it.qty}
+              </span>
+              <span>{it.unitPrice * it.qty} lei</span>
+            </div>
+          ))}
           <div className="summary-row"><span>Livrare</span><span>{deliveryFee} lei</span></div>
           <div className="summary-row summary-row--total"><span>Total</span><span>{total} lei</span></div>
           <button type="submit" className="btn btn--primary btn--block" style={{ marginTop: "18px" }}>

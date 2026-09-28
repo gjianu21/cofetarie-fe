@@ -1,15 +1,17 @@
 import { Link, NavLink } from "react-router-dom";
 import { OAUTH2_LOGIN_URL } from "../../config/oauth2";
+import { useCart } from "../../context/cart-context";
 import { useAuth } from "../../hooks/useAuth";
 import { performLogout } from "../../utils/logout";
 
 interface NavBarProps {
-  cartCount: number;
+  cartCount?: number; // ignorat: numărul vine din useCart(); rămâne opțional ca să nu se strice locul unde e randat NavBar
   onToggleTheme: () => void;
 }
 
-export default function NavBar({ cartCount, onToggleTheme }: NavBarProps) {
+export default function NavBar({ onToggleTheme }: NavBarProps) {
   const { user } = useAuth();
+  const { count: cartCount } = useCart();
 
   const handleLogout = () => {
     performLogout();

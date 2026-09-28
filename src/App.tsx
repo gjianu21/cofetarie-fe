@@ -30,6 +30,7 @@ import AdminOrdersPage from "./pages/admin/OrdersPage";
 import ProductFormPage from "./pages/admin/ProductFormPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 
+import ScrollToTop from "./components/ScrollToTop";
 import EmailVerificationFailedPage from "./pages/auth/EmailVerificationFailedPage";
 import EmailVerifiedPage from "./pages/auth/EmailVerifiedPage";
 import "./styles/theme-extra.css";
@@ -99,6 +100,7 @@ function Shell() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Shell />
     </BrowserRouter>
   );

@@ -1,14 +1,38 @@
-// src/pages/auth/ForgotPasswordPage.tsx
-// PREZENTATIONAL. Pastreaza raspunsul anti-enumerare: acelasi mesaj indiferent daca emailul exista.
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { forgotPassword } from "../../api/auth";
+import { ApiError } from "../../api/client";
 import AuthLayout from "../../components/auth/AuthLayout";
 
 export default function ForgotPasswordPage() {
-  // TODO(logica ta): useState(email), handleSubmit -> apiFetch("/api/auth/forgot-password", ...)
-  // Contractul apiFetch trateaza 204 ca succes fara continut (proxy-ul normalizeaza statusul).
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: apel forgot-password + afiseaza mereu mesajul neutru de mai jos
+    setError(null);
+
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Introdu adresa de email.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await forgotPassword({ email: trimmed });
+      setSent(true); // mesaj neutru, indiferent dacă emailul există
+    } catch (err) {
+      setError(
+        err instanceof ApiError && err.status === 400
+          ? "Adresa de email nu este validă."
+          : "A apărut o eroare. Încearcă din nou.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -19,20 +43,32 @@ export default function ForgotPasswordPage() {
       <form onSubmit={handleSubmit} noValidate>
         <p className="formside__eyebrow">Recuperare</p>
         <h2>Ai uitat parola?</h2>
-        <p className="formside__sub">Scrie-ți adresa de email și îți trimitem un link de resetare.</p>
+        <p className="formside__sub">
+          Scrie-ți adresa de email și îți trimitem un link de resetare.
+        </p>
 
-        {/* TODO: dupa submit, arata mereu acest mesaj (anti user-enumeration):
-        <div className="notice notice--ok">
-          Dacă există un cont cu această adresă, vei primi în scurt timp un link de resetare.
-        </div> */}
+        {sent && (
+          <div className="notice notice--ok">
+            Dacă există un cont cu această adresă, vei primi în scurt timp un link de resetare.
+          </div>
+        )}
+        {error && <div className="notice notice--err">{error}</div>}
 
         <div className="field">
           <label htmlFor="fp-email">Email</label>
-          <input className="input" id="fp-email" type="email" placeholder="nume@exemplu.ro" autoComplete="email" />
+          <input
+            className="input"
+            id="fp-email"
+            type="email"
+            placeholder="nume@exemplu.ro"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
 
-        <button className="btn btn--primary btn--block" type="submit">
-          Trimite link de resetare
+        <button className="btn btn--primary btn--block" type="submit" disabled={submitting}>
+          {submitting ? "Se trimite..." : "Trimite link de resetare"}
         </button>
 
         <p className="foot">
